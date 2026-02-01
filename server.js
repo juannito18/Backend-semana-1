@@ -8,10 +8,7 @@ app.post("/usuario", (req, res) => {
 });
 const productosRoutes = require("./routes/productos.routes");
 app.use("/productos", productosRoutes);
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto", PORT);
-});
+
 // Base de datos falsa
 let productos = [
   { id: 1, nombre: "Mouse", precio: 100 },
@@ -112,14 +109,11 @@ app.use((err, req, res, next) => {
 });
 
 // Iniciar servidor
-app.listen(3000, () => {
-    console.log("Servidor Express en http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
 
 
 
-
-app.use((err, req, res, next) => {
-  console.error("❌ Error:", err.message);
-  res.status(500).json({ error: "Error interno del servidor" });
-});
