@@ -1,7 +1,11 @@
 //const Producto = require("./models/Producto");
-const Tarea = require("./models/Tarea");
-require("dotenv").config();
+const jwt = require("jsonwebtoken");
+const auth = require("./middlewares/auth");
 
+const bcrypt = require("bcrypt");
+const Usuario = require("./models/Usuario");
+
+require("dotenv").config();
 
 const mongoose = require("mongoose");
 
@@ -10,7 +14,6 @@ mongoose.connect(
 "mongodb+srv://rey:rey4321@juan.xeqll4f.mongodb.net/?appName=juan"
 
 )
-mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("🟢 MongoDB conectado"))
   .catch(err => console.error("🔴 Error MongoDB:", err));
 
@@ -21,52 +24,88 @@ const app = express();
 app.use(express.json());
 
 
-app.post("/tareas", async (req, res) => {
+
+app.post("/register", async (req, res) => {
   try {
-    const tarea = new Tarea(req.body);
-    await tarea.save();
-    res.status(201).json(tarea);
+    const { email, password } = req.body;
+
+    // Validación básica
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email y password obligatorios" });
+    }
+
+    // Evitar duplicados
+    const existe = await Usuario.findOne({ email });
+    if (existe) {
+      return res.status(400).json({ error: "El usuario ya existe" });
+    }
+
+    // Hash
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const usuario = new Usuario({
+      email,
+      password: hashedPassword
+    });
+
+    await usuario.save();
+
+    res.status(201).json({ mensaje: "Usuario registrado correctamente" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: "Error en registro" });
   }
 });
 
-app.get("/tareas", async (req, res) => {
-  const tareas = await Tarea.find();
-  res.json(tareas);
-});
 
-app.put("/tareas/:id", async (req, res) => {
+function crearToken(usuario) {
+  return jwt.sign(
+
+    {
+      id: usuario._id, email: usuario.email
+    },
+    process.env.JWT_SECRET,
+    {expiresIn: "1h"}
+  );
+}
+app.post("/login", async (req, res) => {
   try {
-    const tarea = await Tarea.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const { email, password } = req.body;
 
-    if (!tarea) {
-      return res.status(404).json({ error: "Tarea no encontrada" });
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email y password obligatorios" });
     }
 
-    res.json(tarea);
-  } catch {
-    res.status(400).json({ error: "ID inválido" });
-  }
-});
-
-app.delete("/tareas/:id", async (req, res) => {
-  try {
-    const tarea = await Tarea.findByIdAndDelete(req.params.id);
-
-    if (!tarea) {
-      return res.status(404).json({ error: "Tarea no encontrada" });
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) {
+      return res.status(400).json({ error: "Usuario no encontrado" });
     }
 
-    res.json({ mensaje: "Tarea eliminada" });
-  } catch {
-    res.status(400).json({ error: "ID inválido" });
+    const ok = await bcrypt.compare(password, usuario.password);
+    if (!ok) {
+      return res.status(400).json({ error: "Contraseña incorrecta" });
+    }
+
+    const token = crearToken(usuario);
+
+    res.json({
+      mensaje: "Login correcto",
+      token
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error en login" });
   }
 });
+
+
+
+
+app.get("/perfil", auth, (req, res) => {
+  res.json({
+    mensaje: "Acceso autorizado",
+    usuario: req.usuario
+  });
+});
+
 
 
 const PORT = process.env.PORT || 3000;
@@ -86,88 +125,6 @@ app.listen(PORT, () => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-/*
-
-app.post("/productos", async (req, res) => {
-
-try {
-
-const producto = new Producto(req.body);
-
-await producto.save();
-
-res.status(201).json(producto);
-
-} catch (error) {
-
-res.status(400).json({ error: error.message });
-
-}
-
-});
-
-app.get("/productos", async (req, res) => {
-  try {
-    const productos = await Producto.find();
-    res.json(productos);
-  } catch (error) {
-    res.status(500).json({ error: "Error al obtener productos" });
-  }
-});
-app.get("/productos/:id", async (req, res) => {
-  try {
-    const producto = await Producto.findById(req.params.id);
-
-    if (!producto) {
-      return res.status(404).json({ error: "Producto no encontrado" });
-    }
-
-    res.json(producto);
-  } catch (error) {
-    res.status(400).json({ error: "ID inválido" });
-  }
-});
-app.put("/productos/:id", async (req, res) => {
-  try {
-    const actualizado = await Producto.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    if (!actualizado) {
-      return res.status(404).json({ error: "Producto no encontrado" });
-    }
-
-    res.json(actualizado);
-  } catch (error) {
-    res.status(400).json({ error: "Error al actualizar producto" });
-  }
-});
-app.delete("/productos/:id", async (req, res) => {
-  try {
-    const eliminado = await Producto.findByIdAndDelete(req.params.id);
-
-    if (!eliminado) {
-      return res.status(404).json({ error: "Producto no encontrado" });
-    }
-
-    res.json({ mensaje: "Producto eliminado" });
-  } catch (error) {
-    res.status(400).json({ error: "Error al eliminar producto" });
-  }
-});
-*/
 
 // Middleware global de errores
 
