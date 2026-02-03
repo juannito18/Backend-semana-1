@@ -1,13 +1,23 @@
 //const Producto = require("./models/Producto");
 const jwt = require("jsonwebtoken");
 const auth = require("./middlewares/auth");
+const cors = require("cors");
 
 const bcrypt = require("bcrypt");
 const Usuario = require("./models/Usuario");
 
 require("dotenv").config();
+const express = require("express");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use(express.json());
+
 
 const mongoose = require("mongoose");
+
 
 mongoose.connect(
 
@@ -16,12 +26,6 @@ mongoose.connect(
 )
   .then(() => console.log("🟢 MongoDB conectado"))
   .catch(err => console.error("🔴 Error MongoDB:", err));
-
-const express = require("express");
-
-const app = express();
-
-app.use(express.json());
 
 
 
@@ -93,6 +97,8 @@ app.post("/login", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: "Error en login" });
+    console.log("JWT_SECRET:", process.env.JWT_SECRET);
+
   }
 });
 
