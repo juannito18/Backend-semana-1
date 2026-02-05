@@ -1,6 +1,3 @@
-
-
-
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -19,11 +16,9 @@ app.use("/api", tareaRoutes);
 
 app.use(errorHandler);
 
-app.listen(3000, () => {
-  console.log("Servidor corriendo en http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
-
-
-
-
 
