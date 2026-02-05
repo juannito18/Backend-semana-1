@@ -8,11 +8,7 @@ const tareaSchema = new mongoose.Schema({
   completada: {
     type: Boolean,
     default: false
-  },
-  creadaEn: {
-    type: Date,
-    default: Date.now
   }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("Tarea", tareaSchema);
