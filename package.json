@@ -1,4 +1,7 @@
-{
+{"scripts": {
+  "start": "node src/server.js"
+},
+
   "dependencies": {
     "multer": "^2.0.2"
   }
