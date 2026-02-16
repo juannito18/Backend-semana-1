@@ -2,7 +2,7 @@
   "name": "backend-crud-productos",
   "version": "1.0.0",
   "description": "API CRUD de productos con Node.js y Express",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon server.js",
