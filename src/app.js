@@ -1,15 +1,8 @@
 const express = require("express");
+const compression = require("compression");
 const app = express();
-const path = require("path");
-const pool = require("./config/db");
 
-pool.query("SELECT NOW()", (err, res) => {
-  if (err) {
-    console.error("Error conexión DB:", err);
-  } else {
-    console.log("DB conectada:", res.rows);
-  }
-});
+const path = require("path");
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
@@ -19,6 +12,7 @@ app.use("/tareas", require("./modules/tareas/tarea.routes"));
 app.use("/productos", require("./modules/productos/producto.routes"));
 
 // 🔥 JSON después de las rutas que usan multer
+app.use(compression()); // 🔥 compresión gzip
 app.use(express.json());
 
 app.use(require("./middlewares/errorHandler"));

@@ -4,6 +4,11 @@ require("dotenv").config();
 
 const app = require("./app");
 const pool = require("./config/db");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({
+  stdTTL: 60 // cache 60 segundos
+});
 
 pool.query("SELECT NOW()", (err, res) => {
   if (err) {
@@ -12,6 +17,48 @@ pool.query("SELECT NOW()", (err, res) => {
     console.log("DB conectada:", res.rows);
   }
 });
+
+app.get("/users",async(req,res)=>{
+  const cachet = cache.get("users");
+  if (cached) {
+    console.log("Desde cache");
+    return res.json(cached);
+  }
+})
+
+try {
+  const result = await pool.query("SELECT * FROM users");
+  cache.set("users",result.rows);
+  console.log("desde Db");
+  res.json(result.rows);
+} catch (error) {
+  res.json(result.rows);
+}
+app.post("/users", async (req, res) => {
+  const { name, email } = req.body;
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *",
+      [name, email]
+    );
+cache.del("users");
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+/*
 app.get("/users", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM users");
@@ -60,7 +107,7 @@ app.delete("/users/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+});*/
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
