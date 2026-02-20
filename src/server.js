@@ -3,6 +3,15 @@ require("dotenv").config();
 
 
 const app = require("./app");
+const pool = require("./config/db");
+
+pool.query("SELECT NOW()", (err, res) => {
+  if (err) {
+    console.error("Error conexión DB:", err);
+  } else {
+    console.log("DB conectada:", res.rows);
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
